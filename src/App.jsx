@@ -7,6 +7,35 @@ import { toast } from 'sonner'
 export default function App() {
     const queryClient = useQueryClient()
 
+    const formatDurasi = (start, end) => {
+        if (!start || !end) return '-';
+
+        const startTime = new Date(start).getTime();
+        const endTime = new Date(end).getTime();
+        const selisihMs = endTime - startTime;
+
+        const totalDetik = Math.floor(selisihMs / 1000);
+
+        if (totalDetik < 60) {
+            return `${totalDetik} Detik`;
+        }
+
+        const totalMenit = Math.floor(totalDetik / 60);
+
+        if (totalMenit < 60) {
+            return `${totalMenit} Menit`;
+        }
+
+        const jam = Math.floor(totalMenit / 60);
+        const sisaMenit = totalMenit % 60;
+
+        if (sisaMenit === 0) {
+            return `${jam} Jam`;
+        }
+
+        return `${jam} Jam ${sisaMenit} Menit`;
+    }
+
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
             bagTypeId: '',
@@ -84,7 +113,7 @@ export default function App() {
                         Catatan Setoran
                     </h1>
                     <p className="text-neutral-400 mt-1">Pantau progres pekerjaan dan estimasi gaji dengan mudah.</p>
-                    
+
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -188,7 +217,7 @@ export default function App() {
                         )}
 
                         {/* KOTAK RIWAYAT SELESAI */}
-                        <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6 shadow-2xl min-h-[300px]">
+                        <div className="min-h-[300px]">
                             <h2 className="text-xl font-semibold text-white mb-4">Riwayat Selesai</h2>
 
                             {isLoadingWorkLogs ? (
@@ -198,28 +227,31 @@ export default function App() {
                             ) : (
                                 <div className="space-y-3">
                                     {historyLogs.map((log) => (
-                                        <div key={log.id} className="bg-neutral-950/30 border border-neutral-800 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
+                                        <div key={log.id} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
                                             {/* Info Utama Riwayat */}
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-neutral-800/60 pb-5">
+                                            <div className="flex flex-col">
                                                 <div>
-                                                    <div className="flex items-center gap-3">
-                                                        <h3 className="text-lg font-bold text-neutral-300 tracking-wide">{log.bagType?.name || 'Tas'}</h3>
-                                                        <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                            {log.status}
-                                                        </span>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className='flex items-center gap-3'>
+                                                            <h3 className="text-lg font-bold text-neutral-300 tracking-wide">{log.bagType?.name}</h3>
+                                                            <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                                {log.status}
+                                                            </span>
+                                                        </div>
+                                                        <p className=''>{log.quantityDozens} Losin</p>
                                                     </div>
-                                                    <p className="text-sm text-neutral-500 mt-1.5">
+                                                    <p className="text-sm flex justify-between text-neutral-500 mt-1.5">
                                                         {new Date(log.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        <p className="font-medium text-neutral-400">{formatDurasi(log.startTime, log.endTime)}</p>
                                                     </p>
                                                 </div>
                                                 <div className="sm:text-right">
-                                                    <p className="text-xs font-medium text-neutral-600 uppercase tracking-wider mb-1">Gaji Diterima</p>
                                                     <p className="text-xl font-bold text-emerald-500">Rp {log.estimatedPay?.toLocaleString('id-ID')}</p>
                                                 </div>
                                             </div>
 
                                             {/* Grid Detail Riwayat */}
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                                 <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
                                                     <p className="text-neutral-500 text-xs mb-1">Jumlah Disetor</p>
                                                     <p className="font-medium text-neutral-400">{log.quantityDozens} Losin</p>
@@ -239,7 +271,7 @@ export default function App() {
                                                     <p className="text-neutral-500 text-xs mb-1">Lama Pengerjaan</p>
                                                     <p className="font-medium text-neutral-400">{log.durationMinutes ? `${log.durationMinutes} Menit` : '-'}</p>
                                                 </div>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     ))}
                                 </div>
