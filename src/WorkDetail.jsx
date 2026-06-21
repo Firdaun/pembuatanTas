@@ -60,7 +60,7 @@ export default function WorkDetail() {
     )
 
     return (
-        <div className="h-dvh bg-neutral-950 text-neutral-200 p-5 md:p-12 font-sans selection:bg-indigo-500/30">
+        <div className="h-dvh bg-neutral-950 text-neutral-200 p-4 md:p-12 font-sans selection:bg-indigo-500/30">
             {workDetail ? (
                 <div className="max-w-3xl mx-auto md:mt-12">
 
@@ -76,7 +76,7 @@ export default function WorkDetail() {
                     </button>
 
                     {/* Header: Bersih dan Teks Besar */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                    <div className="flex flex-row items-end justify-between gap-6 mb-8">
                         <div>
                             <p className="text-neutral-500 font-mono text-sm tracking-widest uppercase mb-3">
                                 ID Pekerjaan #{workDetail.id}
