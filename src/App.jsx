@@ -39,7 +39,6 @@ export default function App() {
     const navigate = useNavigate()
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext()
 
-
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
             bagTypeId: '',
@@ -99,6 +98,21 @@ export default function App() {
         )
     }
     const isUpdateWorkLogsPending = updateWorkLogs.isPending
+
+    const confirmUpdateWorkLogs = (id) => {
+        toast('Konfirmasi Setoran', {
+            description: 'Apakah yakin pekerjaan ini sudah selesai?',
+            action: {
+                label: 'Ya',
+                onClick: () => handleUpdateWorkLogs(id)
+            },
+            cancel: {
+                label: 'Batal',
+                onClick: () => toast.dismiss()
+            },
+            duration: 5000,
+        })
+    }
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
@@ -201,11 +215,11 @@ export default function App() {
                                         </div>
                                         <div className="col-span-2 flex items-stretch">
                                             <button
-                                                onClick={() => handleUpdateWorkLogs(activeLog.id)}
+                                                onClick={() => confirmUpdateWorkLogs(activeLog.id)}
                                                 disabled={isUpdateWorkLogsPending}
                                                 className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 active:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                             >
-                                                {isUpdateWorkLogsPending && updateWorkLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai (Setor)'}
+                                                {isUpdateWorkLogsPending && updateWorkLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai'}
                                             </button>
                                         </div>
                                     </div>
@@ -248,28 +262,6 @@ export default function App() {
                                                     <p className="text-xl font-bold text-emerald-500">Rp {log.estimatedPay?.toLocaleString('id-ID')}</p>
                                                 </div>
                                             </div>
-
-                                            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                                <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
-                                                    <p className="text-neutral-500 text-xs mb-1">Jumlah Disetor</p>
-                                                    <p className="font-medium text-neutral-400">{log.quantityDozens} Losin</p>
-                                                </div>
-                                                <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
-                                                    <p className="text-neutral-500 text-xs mb-1">Upah per Losin</p>
-                                                    <p className="font-medium text-neutral-400">Rp {log.pricePerDozen?.toLocaleString('id-ID')}</p>
-                                                </div>
-                                                <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
-                                                    <p className="text-neutral-500 text-xs mb-1">Waktu Kerja</p>
-                                                    <p className="font-medium text-neutral-400">
-                                                        {new Date(log.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} {' - '}
-                                                        {log.endTime ? new Date(log.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '...'}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
-                                                    <p className="text-neutral-500 text-xs mb-1">Lama Pengerjaan</p>
-                                                    <p className="font-medium text-neutral-400">{log.durationMinutes ? `${log.durationMinutes} Menit` : '-'}</p>
-                                                </div>
-                                            </div> */}
                                         </div>
                                     ))}
                                 </div>
