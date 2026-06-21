@@ -5,39 +5,40 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useNavigate, useOutletContext } from 'react-router'
 
+export const formatDurasi = (start, end) => {
+    if (!start || !end) return '-';
+
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+    const selisihMs = endTime - startTime;
+
+    const totalDetik = Math.floor(selisihMs / 1000);
+
+    if (totalDetik < 60) {
+        return `${totalDetik} Detik`;
+    }
+
+    const totalMenit = Math.floor(totalDetik / 60);
+
+    if (totalMenit < 60) {
+        return `${totalMenit} Menit`;
+    }
+
+    const jam = Math.floor(totalMenit / 60);
+    const sisaMenit = totalMenit % 60;
+
+    if (sisaMenit === 0) {
+        return `${jam} Jam`;
+    }
+
+    return `${jam} Jam ${sisaMenit} Menit`;
+}
+
 export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext()
 
-    const formatDurasi = (start, end) => {
-        if (!start || !end) return '-';
-
-        const startTime = new Date(start).getTime();
-        const endTime = new Date(end).getTime();
-        const selisihMs = endTime - startTime;
-
-        const totalDetik = Math.floor(selisihMs / 1000);
-
-        if (totalDetik < 60) {
-            return `${totalDetik} Detik`;
-        }
-
-        const totalMenit = Math.floor(totalDetik / 60);
-
-        if (totalMenit < 60) {
-            return `${totalMenit} Menit`;
-        }
-
-        const jam = Math.floor(totalMenit / 60);
-        const sisaMenit = totalMenit % 60;
-
-        if (sisaMenit === 0) {
-            return `${jam} Jam`;
-        }
-
-        return `${jam} Jam ${sisaMenit} Menit`;
-    }
 
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
