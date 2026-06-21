@@ -3,9 +3,12 @@ import { API } from './lib/Api'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useNavigate, useOutletContext } from 'react-router'
 
 export default function App() {
     const queryClient = useQueryClient()
+    const navigate = useNavigate()
+    const { workLogs, isLoadingWorkLogs, isError } = useOutletContext()
 
     const formatDurasi = (start, end) => {
         if (!start || !end) return '-';
@@ -41,13 +44,6 @@ export default function App() {
             bagTypeId: '',
             quantityDozens: ''
         }
-    })
-
-    const { data: workLogs, isLoading: isLoadingWorkLogs } = useQuery({
-        queryKey: ['work-logs'],
-        queryFn: API.ListWorkLogs,
-        staleTime: 5 * 60 * 1000,
-        refetchOnWindowFocus: false
     })
 
     const activeLog = workLogs?.data?.find(log => log.status === 'PENDING')
@@ -224,10 +220,12 @@ export default function App() {
                                 <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Loading...</div>
                             ) : historyLogs.length === 0 ? (
                                 <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Belum ada riwayat setoran selesai.</div>
+                            ) : isError ? (
+                                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Gagal memuat riwayat setoran.</div>
                             ) : (
                                 <div className="space-y-3">
                                     {historyLogs.map((log) => (
-                                        <div key={log.id} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
+                                        <div key={log.id} onClick={() => navigate(`/work-detail/${log.id}`)} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
                                             {/* Info Utama Riwayat */}
                                             <div className="flex flex-col">
                                                 <div>
@@ -240,17 +238,16 @@ export default function App() {
                                                         </div>
                                                         <p className=''>{log.quantityDozens} Losin</p>
                                                     </div>
-                                                    <p className="text-sm flex justify-between text-neutral-500 mt-1.5">
-                                                        {new Date(log.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                                                        <p className="font-medium text-neutral-400">{formatDurasi(log.startTime, log.endTime)}</p>
-                                                    </p>
+                                                    <div className="text-sm flex justify-between text-neutral-500 mt-1.5">
+                                                        {new Date(log.startTime).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        <span className="font-medium text-neutral-400">{formatDurasi(log.startTime, log.endTime)}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="sm:text-right">
                                                     <p className="text-xl font-bold text-emerald-500">Rp {log.estimatedPay?.toLocaleString('id-ID')}</p>
                                                 </div>
                                             </div>
 
-                                            {/* Grid Detail Riwayat */}
                                             {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                                 <div className="bg-neutral-950/50 p-3.5 rounded-xl border border-neutral-800/50">
                                                     <p className="text-neutral-500 text-xs mb-1">Jumlah Disetor</p>
