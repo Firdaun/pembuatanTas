@@ -143,6 +143,8 @@ export default function App() {
                                         >
                                             <option value="1">Tas Inul</option>
                                             <option value="2">Tas Ibu</option>
+                                            <option value="3">Tote Sambung</option>
+                                            <option value="4">Tas Mini</option>
                                         </select>
                                         {errorSubmit.bagTypeId && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.bagTypeId.message}</p>}
                                     </div>
