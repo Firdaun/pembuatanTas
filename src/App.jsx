@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
 import { API } from './lib/Api'
 import { useForm } from 'react-hook-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useNavigate, useOutletContext } from 'react-router'
 
@@ -38,8 +37,6 @@ export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext()
-    console.log(!isLoadingWorkLogs);
-    
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
             bagTypeId: '',
@@ -92,7 +89,7 @@ export default function App() {
                 })
             }),
             {
-                loading: 'Menyimpan data...',
+                loading: 'Mengupdate data...',
                 success: (data) => data.message,
                 error: (error) => error.message
             }
@@ -152,10 +149,25 @@ export default function App() {
                                     <div className="relative">
                                         <label className="text-sm font-medium text-neutral-400">Jumlah (Losin)</label>
                                         <input
-                                            type="int"
+                                            type="text"
+                                            inputMode="numeric"
+                                            enterKeyHint="done"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    e.target.blur()
+                                                }
+                                            }}
                                             placeholder="Contoh: 5"
                                             className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-neutral-700"
-                                            {...dataKantong('quantityDozens', { required: "Jumlah losin harus diisi" })}
+                                            pattern="[0-9]*"
+                                            {...dataKantong('quantityDozens', {
+                                                required: "Jumlah losin harus diisi",
+                                                pattern: {
+                                                    value: /^[0-9]+$/,
+                                                    message: "Hanya angka yang diperbolehkan"
+                                                }
+                                            })}
                                         />
                                         {errorSubmit.quantityDozens && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.quantityDozens.message}</p>}
                                     </div>

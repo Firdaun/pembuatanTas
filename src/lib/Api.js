@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
 const handleResponse = async (response) => {
     if (!response.ok) {
         const error = await response.json().catch(() => ({}))
-        throw new Error(error.message || 'Error Server');
+        throw new Error(error.errors || 'Error Server');
     }
     return response.json()
 }
