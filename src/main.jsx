@@ -7,6 +7,7 @@ import { Toaster } from 'sonner'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import WorkDetail from './WorkDetail.jsx'
 import Outlet from './Outlet.jsx'
+import TotalGaji from './TotalGaji.jsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')).render(
           <Route element={<Outlet />} >
             <Route index element={<App />} />
             <Route path='/work-detail/:id' element={<WorkDetail />} />
+            <Route path='/total-gaji' element={<TotalGaji />} />
           </Route>
         </Routes>
       </BrowserRouter>
