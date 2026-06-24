@@ -11,14 +11,12 @@ export default function TotalGaji() {
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext();
     const [activeFilter, setActiveFilter] = useState("all");
 
-    // ── Data derivation (TODO: replace with real logic) ──
     const completedLogs = workLogs?.data?.filter(log => log.status === "SETOR") || [];
 
     const totalGaji = completedLogs.reduce((sum, log) => sum + (log.estimatedPay || 0), 0);
     const totalLosin = completedLogs.reduce((sum, log) => sum + (log.quantityDozens || 0), 0);
     const totalPekerjaan = completedLogs.length;
 
-    // Group by bag type
     const bagTypeMap = {};
     completedLogs.forEach(log => {
         const name = log.bagType?.name || "Lainnya";
@@ -31,21 +29,17 @@ export default function TotalGaji() {
     });
     const bagTypeBreakdown = Object.values(bagTypeMap).sort((a, b) => b.totalPay - a.totalPay);
 
-    // Highest earning bag type
     const topBagType = bagTypeBreakdown[0];
 
-    // ── Loading State ──
     if (isLoadingWorkLogs) {
         return (
             <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans">
                 <div className="max-w-5xl mx-auto space-y-8">
-                    {/* Header Skeleton */}
                     <div className="animate-pulse space-y-3 pt-4">
                         <div className="h-4 w-28 bg-neutral-800 rounded" />
                         <div className="h-9 w-56 bg-neutral-800 rounded" />
                     </div>
 
-                    {/* Stats Skeleton */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-pulse">
                         {[1, 2, 3].map(i => (
                             <div key={i} className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-6 space-y-3">
@@ -55,7 +49,6 @@ export default function TotalGaji() {
                         ))}
                     </div>
 
-                    {/* Breakdown Skeleton */}
                     <div className="animate-pulse space-y-4">
                         <div className="h-6 w-40 bg-neutral-800 rounded" />
                         {[1, 2, 3].map(i => (
@@ -73,7 +66,6 @@ export default function TotalGaji() {
         );
     }
 
-    // ── Error State ──
     if (isError) {
         return (
             <div className="min-h-screen bg-neutral-950 p-6 flex flex-col items-center justify-center text-center">
@@ -88,10 +80,8 @@ export default function TotalGaji() {
         );
     }
 
-    // ── Helpers ──
     const formatRupiah = (val) => `Rp ${val.toLocaleString("id-ID")}`;
 
-    // Color map for bag type cards
     const bagTypeColors = [
         { bg: "bg-indigo-500/10", border: "border-indigo-500/20", text: "text-indigo-400", bar: "bg-indigo-500" },
         { bg: "bg-purple-500/10", border: "border-purple-500/20", text: "text-purple-400", bar: "bg-purple-500" },
@@ -104,7 +94,6 @@ export default function TotalGaji() {
         <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
             <div className="max-w-5xl mx-auto space-y-8">
 
-                {/* ── Header ── */}
                 <header className="pt-2 md:pt-4">
                     <p className="text-neutral-500 text-sm font-medium tracking-wide uppercase mb-1">Ringkasan</p>
                     <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
@@ -112,7 +101,6 @@ export default function TotalGaji() {
                     </h1>
                 </header>
 
-                {/* ── Filter Pills ── */}
                 <div className="flex gap-2">
                     {FILTER_OPTIONS.map(opt => (
                         <button
@@ -129,10 +117,8 @@ export default function TotalGaji() {
                     ))}
                 </div>
 
-                {/* ── Summary Cards ── */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                    {/* Total Gaji — Highlighted */}
                     <div className="col-span-2 md:col-span-1 bg-neutral-900/60 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-6 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-emerald-500/0 via-emerald-500 to-emerald-500/0 opacity-60" />
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Total Pendapatan</p>
@@ -147,7 +133,6 @@ export default function TotalGaji() {
                         </div>
                     </div>
 
-                    {/* Total Losin */}
                     <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6">
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Total Losin</p>
                         <p className="text-2xl md:text-3xl font-bold text-white tracking-tight">
@@ -156,7 +141,6 @@ export default function TotalGaji() {
                         <p className="text-xs text-neutral-600 mt-2">losin dikerjakan</p>
                     </div>
 
-                    {/* Jumlah Pekerjaan */}
                     <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6">
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Pekerjaan Selesai</p>
                         <p className="text-2xl md:text-3xl font-bold text-white tracking-tight">
@@ -166,7 +150,6 @@ export default function TotalGaji() {
                     </div>
                 </div>
 
-                {/* ── Top Earner Highlight ── */}
                 {topBagType && (
                     <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
@@ -185,7 +168,6 @@ export default function TotalGaji() {
                     </div>
                 )}
 
-                {/* ── Breakdown per Bag Type ── */}
                 <section>
                     <h2 className="text-xl font-semibold text-white mb-4">Rincian per Tipe Tas</h2>
 
@@ -226,7 +208,6 @@ export default function TotalGaji() {
                                             </div>
                                         </div>
 
-                                        {/* Progress Bar */}
                                         <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full ${color.bar} rounded-full transition-all duration-700 ease-out`}
@@ -240,7 +221,6 @@ export default function TotalGaji() {
                     )}
                 </section>
 
-                {/* ── Recent Completed List ── */}
                 <section className="pb-8">
                     <h2 className="text-xl font-semibold text-white mb-4">Riwayat Terakhir</h2>
 
