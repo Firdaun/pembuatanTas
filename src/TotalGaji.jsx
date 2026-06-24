@@ -91,8 +91,8 @@ export default function TotalGaji() {
     ];
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
-            <div className="max-w-5xl mx-auto space-y-8">
+        <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 font-sans selection:bg-indigo-500/30">
+            <div className="max-w-7xl mx-auto space-y-8">
 
                 <header className="pt-2 md:pt-4">
                     <p className="text-neutral-500 text-sm font-medium tracking-wide uppercase mb-1">Ringkasan</p>
