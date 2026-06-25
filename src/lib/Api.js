@@ -30,8 +30,15 @@ const UpdateWorkLogs = async (id) => {
     return handleResponse(response)
 }
 
+const GetIncome = async ({ startDate, endDate }) => {
+    const params = new URLSearchParams({ startDate, endDate })
+    const response = await fetch(`${API_BASE_URL}/work-logs/income?${params}`)
+    return handleResponse(response)
+}
+
 export const API = {
     CreateWork,
     ListWorkLogs,
-    UpdateWorkLogs
+    UpdateWorkLogs,
+    GetIncome
 }

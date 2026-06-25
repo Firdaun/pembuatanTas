@@ -1,5 +1,7 @@
 import { useOutletContext } from "react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { API } from "./lib/Api";
 
 const FILTER_OPTIONS = [
     { key: "all", label: "Semua" },
@@ -7,13 +9,58 @@ const FILTER_OPTIONS = [
     { key: "month", label: "Bulan Ini" },
 ];
 
+// Helper: compute start/end ISO strings based on filter key
+function getDateRange(filterKey) {
+    const now = new Date();
+    let start;
+
+    if (filterKey === "week") {
+        // Monday of the current week
+        const day = now.getDay(); // 0=Sun, 1=Mon, ...
+        const diff = day === 0 ? 6 : day - 1; // days since Monday
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
+    } else if (filterKey === "month") {
+        // First day of current month
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else {
+        // "all" — use a very early date
+        start = new Date("2020-01-01T00:00:00.000Z");
+    }
+
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    end.setHours(0, 0, 0, 0);
+
+    return {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+    };
+}
+
 export default function TotalGaji() {
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext();
     const [activeFilter, setActiveFilter] = useState("all");
 
+    // Compute date range from active filter
+    const dateRange = useMemo(() => getDateRange(activeFilter), [activeFilter]);
+
+    // Fetch income from the API
+    const {
+        data: incomeData,
+        isLoading: isLoadingIncome,
+        isFetching: isFetchingIncome,
+    } = useQuery({
+        queryKey: ["income", dateRange.startDate, dateRange.endDate],
+        queryFn: () => API.GetIncome(dateRange),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+    });
+
+    const totalIncome = incomeData?.data?.totalIncome ?? 0;
+
     const completedLogs = workLogs?.data?.filter(log => log.status === "SETOR") || [];
 
-    const totalGaji = completedLogs.reduce((sum, log) => sum + (log.estimatedPay || 0), 0);
     const totalLosin = completedLogs.reduce((sum, log) => sum + (log.quantityDozens || 0), 0);
     const totalPekerjaan = completedLogs.length;
 
@@ -34,7 +81,7 @@ export default function TotalGaji() {
     if (isLoadingWorkLogs) {
         return (
             <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans">
-                <div className="max-w-5xl mx-auto space-y-8">
+                <div className="max-w-7xl mx-auto space-y-8">
                     <div className="animate-pulse space-y-3 pt-4">
                         <div className="h-4 w-28 bg-neutral-800 rounded" />
                         <div className="h-9 w-56 bg-neutral-800 rounded" />
@@ -119,20 +166,26 @@ export default function TotalGaji() {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
+                    {/* Total Pendapatan — from income API */}
                     <div className="col-span-2 md:col-span-1 bg-neutral-900/60 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-6 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-emerald-500/0 via-emerald-500 to-emerald-500/0 opacity-60" />
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Total Pendapatan</p>
-                        <p className="text-3xl md:text-4xl font-bold text-emerald-400 tracking-tight">
-                            {formatRupiah(totalGaji)}
+                        <p className={`text-3xl md:text-4xl font-bold text-emerald-400 tracking-tight transition-opacity duration-300 ${isFetchingIncome ? "opacity-40" : "opacity-100"}`}>
+                            {isLoadingIncome ? (
+                                <span className="inline-block h-9 w-40 bg-neutral-800 rounded animate-pulse" />
+                            ) : (
+                                formatRupiah(totalIncome)
+                            )}
                         </p>
                         <div className="flex items-center gap-1.5 mt-3">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className={`w-2 h-2 rounded-full bg-emerald-500 ${isFetchingIncome ? "animate-pulse" : ""}`} />
                             <span className="text-xs text-emerald-500/70">
                                 {activeFilter === "all" ? "Seluruh waktu" : activeFilter === "week" ? "Minggu ini" : "Bulan ini"}
                             </span>
                         </div>
                     </div>
 
+                    {/* Total Losin */}
                     <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6">
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Total Losin</p>
                         <p className="text-2xl md:text-3xl font-bold text-white tracking-tight">
@@ -141,6 +194,7 @@ export default function TotalGaji() {
                         <p className="text-xs text-neutral-600 mt-2">losin dikerjakan</p>
                     </div>
 
+                    {/* Jumlah Pekerjaan */}
                     <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6">
                         <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider mb-2">Pekerjaan Selesai</p>
                         <p className="text-2xl md:text-3xl font-bold text-white tracking-tight">
@@ -179,6 +233,7 @@ export default function TotalGaji() {
                         <div className="space-y-3">
                             {bagTypeBreakdown.map((bt, i) => {
                                 const color = bagTypeColors[i % bagTypeColors.length];
+                                const totalGaji = completedLogs.reduce((sum, log) => sum + (log.estimatedPay || 0), 0);
                                 const percentage = totalGaji > 0 ? (bt.totalPay / totalGaji) * 100 : 0;
 
                                 return (
