@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { API } from './lib/Api'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -37,6 +37,7 @@ export const formatDurasi = (start, end) => {
 export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
+    const popupRef = useRef(null)
     const { workLogs, isLoadingWorkLogs, isError, showModal, setShowModal } = useOutletContext()
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
@@ -114,6 +115,19 @@ export default function App() {
         })
     }
 
+    useEffect(() => {
+        if (!showModal) return
+        const handleClickOutside = (e) => {
+            if (!popupRef.current.contains(e.target)) {
+                setShowModal(false)
+                reset()
+            }
+        }
+
+        document.addEventListener('pointerdown', handleClickOutside)
+        return () => document.removeEventListener('pointerdown', handleClickOutside)
+    }, [showModal, reset, setShowModal])
+
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -127,91 +141,7 @@ export default function App() {
                 </header>
 
                 {/* ═══ MODAL POPUP FORM ═══ */}
-                {showModal && (
-                    <div
-                        className="fixed inset-0 z-60 flex items-center justify-center p-4"
-                        onClick={(e) => {
-                            if (e.target === e.currentTarget) setShowModal(false)
-                        }}
-                    >
-                        {/* Backdrop */}
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]" />
-
-                        {/* Modal Content */}
-                        <div className="relative w-full max-w-md animate-[modalIn_300ms_ease-out]">
-                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
-                                {/* Header */}
-                                <div className="flex items-center justify-between mb-5">
-                                    <h2 className="text-xl font-semibold text-white">Input Setoran</h2>
-                                    <button
-                                        onClick={() => setShowModal(false)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                                            <path d="M18 6 6 18" />
-                                            <path d="m6 6 12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {/* Form */}
-                                <form onSubmit={handleKantongSubmit(handleSubmit)} className="space-y-4">
-                                    <div className="relative">
-                                        <label className="text-sm font-medium text-neutral-400">Tipe Tas</label>
-                                        <select
-                                            name="bagTypeId"
-                                            {...dataKantong('bagTypeId', { required: "Tipe tas harus diisi" })}
-                                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
-                                        >
-                                            <option value="1">Tas Inul</option>
-                                            <option value="2">Tas Ibu</option>
-                                            <option value="3">Tote Sambung</option>
-                                            <option value="4">Tas Mini</option>
-                                        </select>
-                                        {errorSubmit.bagTypeId && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.bagTypeId.message}</p>}
-                                    </div>
-
-                                    <div className="relative">
-                                        <label className="text-sm font-medium text-neutral-400">Jumlah (Losin)</label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            enterKeyHint="done"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault()
-                                                    e.target.blur()
-                                                }
-                                            }}
-                                            placeholder="Contoh: 5"
-                                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-neutral-700"
-                                            pattern="[0-9]*"
-                                            {...dataKantong('quantityDozens', {
-                                                required: "Jumlah losin harus diisi",
-                                                pattern: {
-                                                    value: /^[0-9]+$/,
-                                                    message: "Hanya angka yang diperbolehkan"
-                                                }
-                                            })}
-                                        />
-                                        {errorSubmit.quantityDozens && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.quantityDozens.message}</p>}
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isPending}
-                                        className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
-                                    >
-                                        {isPending ? 'Memulai...' : 'Mulai'}
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 <div className="space-y-6">
-
                         {/* KOTAK KHUSUS: PEKERJAAN AKTIF (Hanya muncul jika ada) */}
                         {(activeLog && !isLoadingWorkLogs) && (
                             <div className="bg-neutral-900/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
@@ -380,7 +310,82 @@ export default function App() {
                             )}
                         </div>
                 </div>
+                {showModal && (
+                    <div
+                        className="fixed inset-0 z-60 flex bg-black/60 backdrop-blur-sm items-center justify-center p-4"
+                    >
+                        {/* Modal Content */}
+                        <div className="relative w-full max-w-md animate-[modalIn_300ms_ease-out]">
+                            <div ref={popupRef} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-5">
+                                    <h2 className="text-xl font-semibold text-white">Input Setoran</h2>
+                                    <button
+                                        onClick={() => setShowModal(false)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
 
+                                {/* Form */}
+                                <form onSubmit={handleKantongSubmit(handleSubmit)} className="space-y-4">
+                                    <div className="relative">
+                                        <label className="text-sm font-medium text-neutral-400">Tipe Tas</label>
+                                        <select
+                                            name="bagTypeId"
+                                            {...dataKantong('bagTypeId', { required: "Tipe tas harus diisi" })}
+                                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
+                                        >
+                                            <option value="1">Tas Inul</option>
+                                            <option value="2">Tas Ibu</option>
+                                            <option value="3">Tote Sambung</option>
+                                            <option value="4">Tas Mini</option>
+                                        </select>
+                                        {errorSubmit.bagTypeId && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.bagTypeId.message}</p>}
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="text-sm font-medium text-neutral-400">Jumlah (Losin)</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            enterKeyHint="done"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    e.target.blur()
+                                                }
+                                            }}
+                                            placeholder="Contoh: 5"
+                                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-neutral-700"
+                                            pattern="[0-9]*"
+                                            {...dataKantong('quantityDozens', {
+                                                required: "Jumlah losin harus diisi",
+                                                pattern: {
+                                                    value: /^[0-9]+$/,
+                                                    message: "Hanya angka yang diperbolehkan"
+                                                }
+                                            })}
+                                        />
+                                        {errorSubmit.quantityDozens && <p className='absolute translate-y-1 text-xs text-red-500'>{errorSubmit.quantityDozens.message}</p>}
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isPending}
+                                        className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+                                    >
+                                        {isPending ? 'Memulai...' : 'Mulai'}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
