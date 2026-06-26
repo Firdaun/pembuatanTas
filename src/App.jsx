@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { API } from './lib/Api'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -36,7 +37,7 @@ export const formatDurasi = (start, end) => {
 export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
-    const { workLogs, isLoadingWorkLogs, isError } = useOutletContext()
+    const { workLogs, isLoadingWorkLogs, isError, showModal, setShowModal } = useOutletContext()
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: {
             bagTypeId: '',
@@ -59,6 +60,7 @@ export default function App() {
                     onSuccess: (res) => {
                         queryClient.invalidateQueries({ queryKey: ['work-logs'] })
                         reset()
+                        setShowModal(false)
                         resolve(res)
                     },
                     onError: (error) => reject(error)
@@ -124,13 +126,36 @@ export default function App() {
                     <p className="text-neutral-400 mt-1">Pantau progres pekerjaan dan estimasi gaji dengan mudah.</p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {(!activeLog && !isLoadingWorkLogs) && (
-                        <div className="md:col-span-1">
-                            <div className="bg-neutral-900/60 backdrop-blur-md border border-neutral-800 rounded-2xl p-6 shadow-2xl">
-                                <h2 className="text-xl font-semibold text-white mb-4">Input Setoran</h2>
-                                <form onSubmit={handleKantongSubmit(handleSubmit)} className="space-y-4">
+                {/* ═══ MODAL POPUP FORM ═══ */}
+                {showModal && (
+                    <div
+                        className="fixed inset-0 z-60 flex items-center justify-center p-4"
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) setShowModal(false)
+                        }}
+                    >
+                        {/* Backdrop */}
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]" />
 
+                        {/* Modal Content */}
+                        <div className="relative w-full max-w-md animate-[modalIn_300ms_ease-out]">
+                            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-5">
+                                    <h2 className="text-xl font-semibold text-white">Input Setoran</h2>
+                                    <button
+                                        onClick={() => setShowModal(false)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* Form */}
+                                <form onSubmit={handleKantongSubmit(handleSubmit)} className="space-y-4">
                                     <div className="relative">
                                         <label className="text-sm font-medium text-neutral-400">Tipe Tas</label>
                                         <select
@@ -182,9 +207,10 @@ export default function App() {
                                 </form>
                             </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    <div className="md:col-span-2 space-y-6">
+                <div className="space-y-6">
 
                         {/* KOTAK KHUSUS: PEKERJAAN AKTIF (Hanya muncul jika ada) */}
                         {(activeLog && !isLoadingWorkLogs) && (
@@ -353,7 +379,6 @@ export default function App() {
                                 </div>
                             )}
                         </div>
-                    </div>
                 </div>
 
             </div>

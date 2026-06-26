@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 
-export default function Navbar() {
+export default function Navbar({ showModal, setShowModal }) {
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -66,7 +66,6 @@ export default function Navbar() {
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
                         {navLinks.map((link) => (
                             <Link
@@ -88,36 +87,59 @@ export default function Navbar() {
                                 )}
                             </Link>
                         ))}
+                        {isActive('/') && (
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="ml-2 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white transition-all duration-300 shadow-lg shadow-indigo-500/20"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Tambah
+                            </button>
+                        )}
                     </div>
 
-                    {/* Mobile Hamburger */}
-                    <button
-                        onClick={() => setMobileOpen(!mobileOpen)}
-                        className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/50 transition-all duration-300"
-                        aria-label="Toggle menu"
-                    >
-                        <div className="w-5 h-4 flex flex-col justify-between">
-                            <span
-                                className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
-                                    mobileOpen
-                                        ? "rotate-45 translate-y-[7px]"
-                                        : ""
-                                }`}
-                            />
-                            <span
-                                className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ${
-                                    mobileOpen ? "opacity-0 scale-x-0" : ""
-                                }`}
-                            />
-                            <span
-                                className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
-                                    mobileOpen
-                                        ? "-rotate-45 translate-y-[-7px]"
-                                        : ""
-                                }`}
-                            />
-                        </div>
-                    </button>
+                    {/* Mobile: Tambah + Hamburger */}
+                    <div className="md:hidden flex items-center gap-2">
+                        {isActive('/') && (
+                            <button
+                                onClick={() => {
+                                    setShowModal(true)
+                                    setMobileOpen(false)
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white transition-all duration-300 shadow-lg shadow-indigo-500/20"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Tambah
+                            </button>
+                        )}
+                        <button
+                            onClick={() => setMobileOpen(!mobileOpen)}
+                            className="relative w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/50 transition-all duration-300"
+                            aria-label="Toggle menu"
+                        >
+                            <div className="w-5 h-4 flex flex-col justify-between">
+                                <span
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
+                                        mobileOpen
+                                            ? "rotate-45 translate-y-[7px]"
+                                            : ""
+                                    }`}
+                                />
+                                <span
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ${
+                                        mobileOpen ? "opacity-0 scale-x-0" : ""
+                                    }`}
+                                />
+                                <span
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
+                                        mobileOpen
+                                            ? "-rotate-45 translate-y-[-7px]"
+                                            : ""
+                                    }`}
+                                />
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -188,6 +210,24 @@ function WalletIcon({ active, className }) {
         >
             <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
             <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+        </svg>
+    );
+}
+
+function PlusIcon({ className }) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
         </svg>
     );
 }

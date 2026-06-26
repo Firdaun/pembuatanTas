@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { API } from "./lib/Api.js"
 import { Outlet } from "react-router"
@@ -10,11 +11,14 @@ export default function MainOutlet() {
         staleTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false
     })
+
+    const [showModal, setShowModal] = useState(false)
+
     return (
         <>
             <main className="bg-neutral-950">
-                <Navbar />
-                <Outlet context={{ workLogs, isLoadingWorkLogs, isError, refetch }} />
+                <Navbar showModal={showModal} setShowModal={setShowModal} />
+                <Outlet context={{ workLogs, isLoadingWorkLogs, isError, refetch, showModal, setShowModal }} />
             </main>
         </>
     )
