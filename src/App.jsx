@@ -38,43 +38,70 @@ export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const popupRef = useRef(null)
-    const { workLogs, isLoadingWorkLogs, isError, showModal, setShowModal } = useOutletContext()
+    const { workLogs, isLoadingWorkLogs, isError, showModal, setShowModal, editingLog, setEditingLog } = useOutletContext()
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
-        values: {
-            bagTypeId: '',
-            quantityDozens: ''
-        }
+        values: editingLog
+        ? { bagTypeId: String(editingLog.bagTypeId), quantityDozens: String(editingLog.quantityDozens) }
+        : { bagTypeId: '', quantityDozens: '' }
     })
-
+    
     const activeLog = workLogs?.data?.find(log => log.status === 'PENDING')
     const historyLogs = workLogs?.data?.filter(log => log.status === 'SETOR') || []
-
+    
     // create work logs
     const kantongSubmit = useMutation({
         mutationFn: API.CreateWork
     })
 
+    const updateBagType = useMutation({
+        mutationFn: API.UpdateWorkLog
+    })
+
     const handleSubmit = async (form) => {
-        toast.promise(
-            new Promise((resolve, reject) => {
-                kantongSubmit.mutate(form, {
-                    onSuccess: (res) => {
-                        queryClient.invalidateQueries({ queryKey: ['work-logs'] })
-                        reset()
-                        setShowModal(false)
-                        resolve(res)
-                    },
-                    onError: (error) => reject(error)
-                })
-            }),
-            {
-                loading: 'Menyimpan data...',
-                success: (data) => data.message,
-                error: (error) => error.message
-            }
-        )
+        if (editingLog) {
+            // Update mode
+            toast.promise(
+                new Promise((resolve, reject) => {
+                    updateBagType.mutate({ id: editingLog.id, data: form }, {
+                        onSuccess: (res) => {
+                            queryClient.invalidateQueries({ queryKey: ['work-logs'] })
+                            reset()
+                            setEditingLog(null)
+                            setShowModal(false)
+                            resolve(res)
+                        },
+                        onError: (error) => reject(error)
+                    })
+                }),
+                {
+                    loading: 'Mengupdate data...',
+                    success: (data) => data.message,
+                    error: (error) => error.message
+                }
+            )
+        } else {
+            // Create mode
+            toast.promise(
+                new Promise((resolve, reject) => {
+                    kantongSubmit.mutate(form, {
+                        onSuccess: (res) => {
+                            queryClient.invalidateQueries({ queryKey: ['work-logs'] })
+                            reset()
+                            setShowModal(false)
+                            resolve(res)
+                        },
+                        onError: (error) => reject(error)
+                    })
+                }),
+                {
+                    loading: 'Menyimpan data...',
+                    success: (data) => data.message,
+                    error: (error) => error.message
+                }
+            )
+        }
     }
-    const isPending = kantongSubmit.isPending
+    const isPending = kantongSubmit.isPending || updateBagType.isPending
 
     // update work logs
     const updateWorkLogs = useMutation({
@@ -115,18 +142,23 @@ export default function App() {
         })
     }
 
+    const closeModal = () => {
+        setShowModal(false)
+        setEditingLog(null)
+        reset()
+    }
+
     useEffect(() => {
         if (!showModal) return
         const handleClickOutside = (e) => {
             if (!popupRef.current.contains(e.target)) {
-                setShowModal(false)
-                reset()
+                closeModal()
             }
         }
 
         document.addEventListener('pointerdown', handleClickOutside)
         return () => document.removeEventListener('pointerdown', handleClickOutside)
-    }, [showModal, reset, setShowModal])
+    }, [showModal, reset, setShowModal, setEditingLog])
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
@@ -174,7 +206,7 @@ export default function App() {
                                     </div>
 
                                     {/* Grid Detail Aktif & Tombol Setor */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                                         <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
                                             <p className="text-neutral-500 text-xs mb-1">Jumlah</p>
                                             <p className="font-medium text-neutral-200">{activeLog?.quantityDozens} Losin</p>
@@ -183,6 +215,16 @@ export default function App() {
                                             <p className="text-neutral-500 text-xs mb-1">Upah/Losin</p>
                                             <p className="font-medium text-neutral-200">Rp {activeLog?.pricePerDozen?.toLocaleString('id-ID')}</p>
                                         </div>
+                                        <button
+                                            onClick={() => {
+                                                setEditingLog(activeLog)
+                                                setShowModal(true)
+                                            }}
+                                            disabled={isPending}
+                                            className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 active:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            Update
+                                        </button>
                                         <div className="col-span-2 flex items-stretch">
                                             <button
                                                 onClick={() => confirmUpdateWorkLogs(activeLog.id)}
@@ -319,9 +361,9 @@ export default function App() {
                             <div ref={popupRef} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-5">
-                                    <h2 className="text-xl font-semibold text-white">Input Setoran</h2>
+                                    <h2 className="text-xl font-semibold text-white">{editingLog ? 'Update Setoran' : 'Input Setoran'}</h2>
                                     <button
-                                        onClick={() => setShowModal(false)}
+                                        onClick={closeModal}
                                         className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -379,7 +421,10 @@ export default function App() {
                                         disabled={isPending}
                                         className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
                                     >
-                                        {isPending ? 'Memulai...' : 'Mulai'}
+                                        {isPending
+                                            ? (editingLog ? 'Mengupdate...' : 'Memulai...')
+                                            : (editingLog ? 'Update' : 'Mulai')
+                                        }
                                     </button>
                                 </form>
                             </div>

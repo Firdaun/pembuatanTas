@@ -13,12 +13,13 @@ export default function MainOutlet() {
     })
 
     const [showModal, setShowModal] = useState(false)
+    const [editingLog, setEditingLog] = useState(null)
 
     return (
         <>
             <main className="bg-neutral-950">
-                <Navbar showModal={showModal} setShowModal={setShowModal} />
-                <Outlet context={{ workLogs, isLoadingWorkLogs, isError, refetch, showModal, setShowModal }} />
+                <Navbar setShowModal={setShowModal} />
+                <Outlet context={{ workLogs, isLoadingWorkLogs, isError, refetch, showModal, setShowModal, editingLog, setEditingLog }} />
             </main>
         </>
     )

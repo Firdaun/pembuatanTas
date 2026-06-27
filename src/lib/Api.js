@@ -36,9 +36,19 @@ const GetIncome = async ({ startDate, endDate }) => {
     return handleResponse(response)
 }
 
+const UpdateWorkLog = async ({id, data}) => {
+    const response = await fetch(`${API_BASE_URL}/work-logs/${id}/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    })
+    return handleResponse(response)
+}
+
 export const API = {
     CreateWork,
     ListWorkLogs,
     UpdateWorkLogs,
-    GetIncome
+    GetIncome,
+    UpdateWorkLog
 }

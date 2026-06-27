@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 
-export default function Navbar({ showModal, setShowModal }) {
+export default function Navbar({ setShowModal }) {
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,11 +25,10 @@ export default function Navbar({ showModal, setShowModal }) {
 
     return (
         <nav
-            className={`sticky top-0 z-50 transition-all px-4 duration-500 ${
-                scrolled
+            className={`sticky top-0 z-50 transition-all px-4 duration-500 ${scrolled
                     ? "bg-neutral-950/80 backdrop-blur-xl shadow-lg shadow-black/20 border-b border-neutral-800/50"
                     : "bg-neutral-950/40 backdrop-blur-md border-b border-transparent"
-            }`}
+                }`}
         >
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between h-16">
@@ -71,11 +70,10 @@ export default function Navbar({ showModal, setShowModal }) {
                             <Link
                                 key={link.to}
                                 to={link.to}
-                                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                                    isActive(link.to)
+                                className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${isActive(link.to)
                                         ? "text-white bg-neutral-800/60"
                                         : "text-neutral-400 hover:text-white hover:bg-neutral-800/30"
-                                }`}
+                                    }`}
                             >
                                 <link.icon
                                     active={isActive(link.to)}
@@ -89,7 +87,9 @@ export default function Navbar({ showModal, setShowModal }) {
                         ))}
                         {isActive('/') && (
                             <button
-                                onClick={() => setShowModal(true)}
+                                onClick={() => {
+                                    setShowModal(true)
+                                }}
                                 className="ml-2 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white transition-all duration-300 shadow-lg shadow-indigo-500/20"
                             >
                                 <PlusIcon className="w-4 h-4" />
@@ -119,23 +119,20 @@ export default function Navbar({ showModal, setShowModal }) {
                         >
                             <div className="w-5 h-4 flex flex-col justify-between">
                                 <span
-                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
-                                        mobileOpen
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${mobileOpen
                                             ? "rotate-45 translate-y-[7px]"
                                             : ""
-                                    }`}
+                                        }`}
                                 />
                                 <span
-                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ${
-                                        mobileOpen ? "opacity-0 scale-x-0" : ""
-                                    }`}
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 ${mobileOpen ? "opacity-0 scale-x-0" : ""
+                                        }`}
                                 />
                                 <span
-                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${
-                                        mobileOpen
+                                    className={`block h-0.5 w-full bg-current rounded-full transition-all duration-300 origin-center ${mobileOpen
                                             ? "-rotate-45 translate-y-[-7px]"
                                             : ""
-                                    }`}
+                                        }`}
                                 />
                             </div>
                         </button>
@@ -145,20 +142,18 @@ export default function Navbar({ showModal, setShowModal }) {
 
             {/* Mobile Menu */}
             <div
-                className={`md:hidden overflow-hidden transition-all duration-400 ease-out ${
-                    mobileOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
-                }`}
+                className={`md:hidden overflow-hidden transition-all duration-400 ease-out ${mobileOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                    }`}
             >
                 <div className="pb-4 pt-1 space-y-1 border-t border-neutral-800/50">
                     {navLinks.map((link) => (
                         <Link
                             key={link.to}
                             to={link.to}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
-                                isActive(link.to)
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${isActive(link.to)
                                     ? "text-white bg-neutral-800/60"
                                     : "text-neutral-400 hover:text-white hover:bg-neutral-800/30"
-                            }`}
+                                }`}
                         >
                             <link.icon
                                 active={isActive(link.to)}
