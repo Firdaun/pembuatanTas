@@ -103,14 +103,14 @@ export default function App() {
     }
     const isPending = kantongSubmit.isPending || updateBagType.isPending
 
-    // update work logs
-    const updateWorkLogs = useMutation({
-        mutationFn: API.UpdateWorkLogs
+    // update status logs
+    const updateStatusLogs = useMutation({
+        mutationFn: API.UpdateStatusLogs
     })
-    const handleUpdateWorkLogs = async (id) => {
+    const handleUpdateStatusLogs = async (id) => {
         toast.promise(
             new Promise((resolve, reject) => {
-                updateWorkLogs.mutate(id, {
+                updateStatusLogs.mutate(id, {
                     onSuccess: (res) => {
                         queryClient.invalidateQueries({ queryKey: ['work-logs'] })
                         resolve(res)
@@ -125,14 +125,14 @@ export default function App() {
             }
         )
     }
-    const isUpdateWorkLogsPending = updateWorkLogs.isPending
+    const isUpdateLogsPending = updateStatusLogs.isPending
 
-    const confirmUpdateWorkLogs = (id) => {
+    const confirmUpdateStatusLogs = (id) => {
         toast('Konfirmasi Setoran', {
             description: 'Apakah yakin pekerjaan ini sudah selesai?',
             action: {
                 label: 'Ya',
-                onClick: () => handleUpdateWorkLogs(id)
+                onClick: () => handleUpdateStatusLogs(id)
             },
             cancel: {
                 label: 'Batal',
@@ -240,11 +240,11 @@ export default function App() {
                                         </div>
                                         <div className="col-span-2 flex items-stretch">
                                             <button
-                                                onClick={() => confirmUpdateWorkLogs(activeLog.id)}
-                                                disabled={isUpdateWorkLogsPending}
+                                                onClick={() => confirmUpdateStatusLogs(activeLog.id)}
+                                                disabled={isUpdateLogsPending}
                                                 className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 active:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                             >
-                                                {isUpdateWorkLogsPending && updateWorkLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai'}
+                                                {isUpdateLogsPending && updateStatusLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai'}
                                             </button>
                                         </div>
                                     </div>

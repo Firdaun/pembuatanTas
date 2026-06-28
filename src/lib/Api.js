@@ -22,7 +22,7 @@ const ListWorkLogs = async () => {
     return handleResponse(response)
 }
 
-const UpdateWorkLogs = async (id) => {
+const UpdateStatusLogs = async (id) => {
     const response = await fetch(`${API_BASE_URL}/work-logs/${id}/setor`, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
@@ -48,7 +48,7 @@ const UpdateWorkLog = async ({id, data}) => {
 export const API = {
     CreateWork,
     ListWorkLogs,
-    UpdateWorkLogs,
+    UpdateStatusLogs,
     GetIncome,
     UpdateWorkLog
 }
