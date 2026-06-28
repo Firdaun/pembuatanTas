@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { API } from './lib/Api'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -142,23 +142,34 @@ export default function App() {
         })
     }
 
+    const [isClosing, setIsClosing] = useState(false)
+
     const closeModal = () => {
-        setShowModal(false)
-        setEditingLog(null)
-        reset()
+        setIsClosing(true)
+        setTimeout(() => {
+            setShowModal(false)
+            setEditingLog(null)
+            setIsClosing(false)
+            reset()
+        }, 200)
     }
 
     useEffect(() => {
         if (!showModal) return
         const handleClickOutside = (e) => {
-            if (!popupRef.current.contains(e.target)) {
+            if (!popupRef.current.contains(e.target) && !isClosing) {
                 closeModal()
             }
         }
 
         document.addEventListener('pointerdown', handleClickOutside)
         return () => document.removeEventListener('pointerdown', handleClickOutside)
-    }, [showModal, reset, setShowModal, setEditingLog])
+    }, [showModal, reset, setShowModal, setEditingLog, isClosing])
+
+    useEffect(() => {
+        document.body.style.overflow = (showModal || isClosing) ? 'hidden' : ''
+        return () => { document.body.style.overflow = '' }
+    }, [showModal, isClosing])
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
@@ -356,10 +367,10 @@ export default function App() {
                 </div>
                 {showModal && (
                     <div
-                        className="fixed inset-0 z-60 flex bg-black/60 backdrop-blur-sm items-center justify-center p-4"
+                        className={`fixed inset-0 z-60 flex bg-black/60 backdrop-blur-sm items-center justify-center p-4 ${isClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}
                     >
                         {/* Modal Content */}
-                        <div className="relative w-full max-w-md animate-[modalIn_300ms_ease-out]">
+                        <div className={`relative w-full max-w-md ${isClosing ? 'animate-[modalOut_200ms_ease-in_forwards]' : 'animate-[modalIn_300ms_ease-out]'}`}>
                             <div ref={popupRef} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-5">
