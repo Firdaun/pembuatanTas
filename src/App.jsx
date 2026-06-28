@@ -215,16 +215,18 @@ export default function App() {
                                             <p className="text-neutral-500 text-xs mb-1">Upah/Losin</p>
                                             <p className="font-medium text-neutral-200">Rp {activeLog?.pricePerDozen?.toLocaleString('id-ID')}</p>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                setEditingLog(activeLog)
-                                                setShowModal(true)
-                                            }}
-                                            disabled={isPending}
-                                            className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 active:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            Update
-                                        </button>
+                                        <div className="col-span-2 md:col-span-1 flex items-stretch">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingLog(activeLog)
+                                                    setShowModal(true)
+                                                }}
+                                                disabled={isPending}
+                                                className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 active:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                Update
+                                            </button>
+                                        </div>
                                         <div className="col-span-2 flex items-stretch">
                                             <button
                                                 onClick={() => confirmUpdateWorkLogs(activeLog.id)}
@@ -394,7 +396,7 @@ export default function App() {
                                         <label className="text-sm font-medium text-neutral-400">Jumlah (Losin)</label>
                                         <input
                                             type="text"
-                                            inputMode="numeric"
+                                            inputMode="decimal"
                                             enterKeyHint="done"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
@@ -402,13 +404,13 @@ export default function App() {
                                                     e.target.blur()
                                                 }
                                             }}
-                                            placeholder="Contoh: 5"
+                                            placeholder="Contoh: 2.5"
                                             className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-neutral-700"
-                                            pattern="[0-9]*"
+                                            pattern="[0-9]*\.?[0-9]*"
                                             {...dataKantong('quantityDozens', {
                                                 required: "Jumlah losin harus diisi",
                                                 pattern: {
-                                                    value: /^[0-9]+$/,
+                                                    value: /^[0-9]+(\.[0-9]+)?$/,
                                                     message: "Hanya angka yang diperbolehkan"
                                                 }
                                             })}
