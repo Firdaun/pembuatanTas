@@ -34,6 +34,60 @@ export const formatDurasi = (start, end) => {
     return `${jam} Jam ${sisaMenit} Menit`;
 }
 
+export const groupLogsByWeek = (logs) => {
+    if (!logs || logs.length === 0) return [];
+
+    const groups = {};
+    const now = new Date();
+
+    // Fungsi untuk mendapatkan hari Senin dari sebuah tanggal
+    const getMonday = (date) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        // Jika hari Minggu (0), mundur 6 hari. Selain itu, mundur (day - 1) hari
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        d.setDate(diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    };
+
+    const currentMonday = getMonday(now).getTime();
+    const lastWeekMonday = currentMonday - (7 * 24 * 60 * 60 * 1000);
+
+    logs.forEach(log => {
+        const logDate = new Date(log.startTime);
+        const startOfWeek = getMonday(logDate);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Hari Minggu
+
+        const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+        let label = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+
+        // Beri nama khusus untuk minggu ini dan minggu lalu
+        if (startOfWeek.getTime() === currentMonday) {
+            label = `Minggu Ini (${label})`;
+        } else if (startOfWeek.getTime() === lastWeekMonday) {
+            label = `Minggu Lalu (${label})`;
+        }
+
+        const key = startOfWeek.getTime(); // Gunakan timestamp Senin sebagai kunci pengurutan
+
+        if (!groups[key]) {
+            groups[key] = {
+                key: key,
+                label: label,
+                logs: []
+            };
+        }
+        groups[key].logs.push(log);
+    });
+
+    // Ubah object menjadi array, lalu urutkan dari yang terbaru (key terbesar) ke terlama
+    return Object.values(groups).sort((a, b) => b.key - a.key);
+};
+
 export default function App() {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
@@ -41,13 +95,14 @@ export default function App() {
     const { workLogs, isLoadingWorkLogs, isError, showModal, setShowModal, editingLog, setEditingLog } = useOutletContext()
     const { register: dataKantong, handleSubmit: handleKantongSubmit, formState: { errors: errorSubmit }, reset } = useForm({
         values: editingLog
-        ? { bagTypeId: String(editingLog.bagTypeId), quantityDozens: String(editingLog.quantityDozens) }
-        : { bagTypeId: '', quantityDozens: '' }
+            ? { bagTypeId: String(editingLog.bagTypeId), quantityDozens: String(editingLog.quantityDozens) }
+            : { bagTypeId: '', quantityDozens: '' }
     })
-    
+
     const activeLog = workLogs?.data?.find(log => log.status === 'PENDING')
     const historyLogs = workLogs?.data?.filter(log => log.status === 'SETOR') || []
-    
+    const groupedHistoryLogs = groupLogsByWeek(historyLogs)
+
     // create work logs
     const kantongSubmit = useMutation({
         mutationFn: API.CreateWork
@@ -185,185 +240,195 @@ export default function App() {
 
                 {/* ═══ MODAL POPUP FORM ═══ */}
                 <div className="space-y-6">
-                        {/* KOTAK KHUSUS: PEKERJAAN AKTIF (Hanya muncul jika ada) */}
-                        {(activeLog && !isLoadingWorkLogs) && (
-                            <div className="bg-neutral-900/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500/0 via-amber-500 to-amber-500/0 opacity-50"></div>
+                    {/* KOTAK KHUSUS: PEKERJAAN AKTIF (Hanya muncul jika ada) */}
+                    {(activeLog && !isLoadingWorkLogs) && (
+                        <div className="bg-neutral-900/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500/0 via-amber-500 to-amber-500/0 opacity-50"></div>
 
-                                <h2 className="text-xl font-semibold text-amber-400 mb-4 flex items-center gap-3">
-                                    <span className="relative flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-                                    </span>
-                                    Sedang Dikerjakan
-                                </h2>
+                            <h2 className="text-xl font-semibold text-amber-400 mb-4 flex items-center gap-3">
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                                </span>
+                                Sedang Dikerjakan
+                            </h2>
 
-                                <div className="bg-neutral-950/40 border border-amber-500/20 rounded-2xl p-5 space-y-5">
-                                    {/* Info Utama Aktif */}
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-amber-500/10 pb-5">
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="text-xl font-bold text-white tracking-wide">{activeLog?.bagType.name || 'Tas'}</h3>
-                                                <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                                    {activeLog?.status}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-neutral-400 mt-1.5">Mulai: {new Date(activeLog?.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                            <div className="bg-neutral-950/40 border border-amber-500/20 rounded-2xl p-5 space-y-5">
+                                {/* Info Utama Aktif */}
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-amber-500/10 pb-5">
+                                    <div>
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="text-xl font-bold text-white tracking-wide">{activeLog?.bagType.name || 'Tas'}</h3>
+                                            <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                {activeLog?.status}
+                                            </span>
                                         </div>
-                                        <div className="sm:text-right">
-                                            <p className="text-xs font-medium text-amber-500/70 uppercase tracking-wider mb-1">Etimasi Gaji</p>
-                                            <p className="text-2xl font-bold text-amber-400">Rp {activeLog?.estimatedPay.toLocaleString('id-ID')}</p>
-                                        </div>
+                                        <p className="text-sm text-neutral-400 mt-1.5">Mulai: {new Date(activeLog?.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
+                                    <div className="sm:text-right">
+                                        <p className="text-xs font-medium text-amber-500/70 uppercase tracking-wider mb-1">Etimasi Gaji</p>
+                                        <p className="text-2xl font-bold text-amber-400">Rp {activeLog?.estimatedPay.toLocaleString('id-ID')}</p>
+                                    </div>
+                                </div>
 
-                                    {/* Grid Detail Aktif & Tombol Setor */}
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                                        <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
-                                            <p className="text-neutral-500 text-xs mb-1">Jumlah</p>
-                                            <p className="font-medium text-neutral-200">{activeLog?.quantityDozens} Losin</p>
-                                        </div>
-                                        <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
-                                            <p className="text-neutral-500 text-xs mb-1">Upah/Losin</p>
-                                            <p className="font-medium text-neutral-200">Rp {activeLog?.pricePerDozen?.toLocaleString('id-ID')}</p>
-                                        </div>
-                                        <div className="col-span-2 md:col-span-1 flex items-stretch">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingLog(activeLog)
-                                                    setShowModal(true)
-                                                }}
-                                                disabled={isPending}
-                                                className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 active:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                            >
-                                                Update
-                                            </button>
-                                        </div>
-                                        <div className="col-span-2 flex items-stretch">
-                                            <button
-                                                onClick={() => confirmUpdateStatusLogs(activeLog.id)}
-                                                disabled={isUpdateLogsPending}
-                                                className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 active:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                            >
-                                                {isUpdateLogsPending && updateStatusLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai'}
-                                            </button>
-                                        </div>
+                                {/* Grid Detail Aktif & Tombol Setor */}
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                                    <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
+                                        <p className="text-neutral-500 text-xs mb-1">Jumlah</p>
+                                        <p className="font-medium text-neutral-200">{activeLog?.quantityDozens} Losin</p>
+                                    </div>
+                                    <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
+                                        <p className="text-neutral-500 text-xs mb-1">Upah/Losin</p>
+                                        <p className="font-medium text-neutral-200">Rp {activeLog?.pricePerDozen?.toLocaleString('id-ID')}</p>
+                                    </div>
+                                    <div className="col-span-2 md:col-span-1 flex items-stretch">
+                                        <button
+                                            onClick={() => {
+                                                setEditingLog(activeLog)
+                                                setShowModal(true)
+                                            }}
+                                            disabled={isPending}
+                                            className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 active:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
+                                    <div className="col-span-2 flex items-stretch">
+                                        <button
+                                            onClick={() => confirmUpdateStatusLogs(activeLog.id)}
+                                            disabled={isUpdateLogsPending}
+                                            className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 active:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 font-medium p-3.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {isUpdateLogsPending && updateStatusLogs.variables === activeLog.id ? 'Memproses...' : 'Tandai Selesai'}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {/* KOTAK RIWAYAT SELESAI */}
-                        <div className="min-h-[300px]">
+                    {/* KOTAK RIWAYAT SELESAI */}
+                    <div className="min-h-[300px]">
 
-                            {isLoadingWorkLogs ? (
-                                <div>
-                                    <div className="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden animate-pulse">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-neutral-800"></div>
+                        {isLoadingWorkLogs ? (
+                            <div>
+                                <div className="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden animate-pulse">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-neutral-800"></div>
 
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <div className="h-3 w-3 bg-neutral-800 rounded-full"></div>
-                                            <div className="h-6 w-44 bg-neutral-800 rounded"></div>
-                                        </div>
-
-                                        <div className="bg-neutral-950/40 border border-neutral-800 rounded-2xl p-5 space-y-5">
-                                            {/* Info Utama Aktif */}
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-neutral-800 pb-5">
-                                                <div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-6 w-28 bg-neutral-800 rounded"></div>
-                                                        <div className="h-5 w-20 bg-neutral-800 rounded-full"></div>
-                                                    </div>
-                                                    <div className="h-3.5 w-32 bg-neutral-800 rounded mt-1.5"></div>
-                                                </div>
-                                                <div className="sm:text-right space-y-1.5">
-                                                    <div className="h-3 w-24 bg-neutral-800 rounded sm:ml-auto"></div>
-                                                    <div className="h-7 w-32 bg-neutral-800 rounded sm:ml-auto"></div>
-                                                </div>
-                                            </div>
-
-                                            {/* Grid Detail Aktif & Tombol Setor */}
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                                <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50 space-y-1.5">
-                                                    <div className="h-3 w-12 bg-neutral-800 rounded"></div>
-                                                    <div className="h-4 w-16 bg-neutral-800 rounded"></div>
-                                                </div>
-                                                <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50 space-y-1.5">
-                                                    <div className="h-3 w-16 bg-neutral-800 rounded"></div>
-                                                    <div className="h-4 w-20 bg-neutral-800 rounded"></div>
-                                                </div>
-                                                <div className="col-span-2 flex items-stretch">
-                                                    <div className="w-full bg-neutral-800/50 rounded-xl"></div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="h-3 w-3 bg-neutral-800 rounded-full"></div>
+                                        <div className="h-6 w-44 bg-neutral-800 rounded"></div>
                                     </div>
 
-                                    <div className="space-y-3 mt-6">
-                                        <div className="h-6 w-40 bg-neutral-800 rounded mb-4 animate-pulse"></div>
-
-                                        {Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 space-y-5 animate-pulse">
-                                                <div className="flex flex-col">
-                                                    <div>
-                                                        <div className="flex items-center justify-between gap-3">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="h-5 w-24 bg-neutral-800 rounded"></div>
-                                                                <div className="h-5 w-16 bg-neutral-800 rounded-full"></div>
-                                                            </div>
-                                                            <div className="h-4 w-14 bg-neutral-800 rounded"></div>
-                                                        </div>
-                                                        <div className="flex justify-between mt-1.5">
-                                                            <div className="h-3.5 w-40 bg-neutral-800 rounded"></div>
-                                                            <div className="h-3.5 w-16 bg-neutral-800 rounded"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-between items-center mt-2">
-                                                        <div className="h-4 w-24 bg-neutral-800 rounded"></div>
-                                                        <div className="h-6 w-28 bg-neutral-800 rounded"></div>
-                                                    </div>
+                                    <div className="bg-neutral-950/40 border border-neutral-800 rounded-2xl p-5 space-y-5">
+                                        {/* Info Utama Aktif */}
+                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-neutral-800 pb-5">
+                                            <div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-6 w-28 bg-neutral-800 rounded"></div>
+                                                    <div className="h-5 w-20 bg-neutral-800 rounded-full"></div>
                                                 </div>
+                                                <div className="h-3.5 w-32 bg-neutral-800 rounded mt-1.5"></div>
                                             </div>
-                                        ))}
+                                            <div className="sm:text-right space-y-1.5">
+                                                <div className="h-3 w-24 bg-neutral-800 rounded sm:ml-auto"></div>
+                                                <div className="h-7 w-32 bg-neutral-800 rounded sm:ml-auto"></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Grid Detail Aktif & Tombol Setor */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                            <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50 space-y-1.5">
+                                                <div className="h-3 w-12 bg-neutral-800 rounded"></div>
+                                                <div className="h-4 w-16 bg-neutral-800 rounded"></div>
+                                            </div>
+                                            <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50 space-y-1.5">
+                                                <div className="h-3 w-16 bg-neutral-800 rounded"></div>
+                                                <div className="h-4 w-20 bg-neutral-800 rounded"></div>
+                                            </div>
+                                            <div className="col-span-2 flex items-stretch">
+                                                <div className="w-full bg-neutral-800/50 rounded-xl"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            ) : historyLogs.length === 0 ? (
-                                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Belum ada riwayat setoran selesai.</div>
-                            ) : isError ? (
-                                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Gagal memuat riwayat setoran.</div>
-                            ) : (
-                                <div className="space-y-3">
-                                    <h2 className="text-xl font-semibold text-white mb-4">Riwayat Selesai</h2>
-                                    {historyLogs.map((log) => (
-                                        <div key={log.id} onClick={() => navigate(`/work-detail/${log.id}`)} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
-                                            {/* Info Utama Riwayat */}
+
+                                <div className="space-y-3 mt-6">
+                                    <div className="h-6 w-40 bg-neutral-800 rounded mb-4 animate-pulse"></div>
+
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 space-y-5 animate-pulse">
                                             <div className="flex flex-col">
                                                 <div>
                                                     <div className="flex items-center justify-between gap-3">
-                                                        <div className='flex items-center gap-3'>
-                                                            <h3 className="text-lg font-bold text-neutral-300 tracking-wide">{log.bagType?.name}</h3>
-                                                            <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                                {log.status}
-                                                            </span>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-5 w-24 bg-neutral-800 rounded"></div>
+                                                            <div className="h-5 w-16 bg-neutral-800 rounded-full"></div>
                                                         </div>
-                                                        <p className=''>{log.quantityDozens} Losin</p>
+                                                        <div className="h-4 w-14 bg-neutral-800 rounded"></div>
                                                     </div>
-                                                    <div className="text-sm flex justify-between text-neutral-500 mt-1.5">
-                                                        {new Date(log.startTime).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                                                        <span className="font-medium text-neutral-400">{formatDurasi(log.startTime, log.endTime)}</span>
+                                                    <div className="flex justify-between mt-1.5">
+                                                        <div className="h-3.5 w-40 bg-neutral-800 rounded"></div>
+                                                        <div className="h-3.5 w-16 bg-neutral-800 rounded"></div>
                                                     </div>
                                                 </div>
-                                                <div className="flex justify-between items-center">
-                                                    <p className="text-neutral-500">
-                                                        ID Pekerjaan #{log.id}
-                                                    </p>
-                                                    <p className="text-xl font-bold text-emerald-500">Rp {log.estimatedPay?.toLocaleString('id-ID')}</p>
+                                                <div className="flex justify-between items-center mt-2">
+                                                    <div className="h-4 w-24 bg-neutral-800 rounded"></div>
+                                                    <div className="h-6 w-28 bg-neutral-800 rounded"></div>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : historyLogs.length === 0 ? (
+                            <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Belum ada riwayat setoran selesai.</div>
+                        ) : isError ? (
+                            <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">Gagal memuat riwayat setoran.</div>
+                        ) : (
+                            <div className="space-y-3">
+                                <h2 className="text-xl font-semibold text-white mb-4">Riwayat Selesai</h2>
+                                {groupedHistoryLogs.map((group) => (
+                                    <div key={group.key} className='space-y-3'>
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <h3 className="text-sm font-medium text-indigo-400 uppercase tracking-wider">
+                                                {group.label}
+                                            </h3>
+                                            <div className="flex-1 h-px bg-neutral-800/60"></div>
+                                        </div>
+                                        {group.logs.map((log) => (
+                                            <div key={log.id} onClick={() => navigate(`/work-detail/${log.id}`)} className="bg-neutral-900 border border-neutral-900 rounded-2xl p-5 hover:bg-neutral-900/60 transition-all duration-300 space-y-5">
+                                                {/* Info Utama Riwayat */}
+                                                <div className="flex flex-col">
+                                                    <div>
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <div className='flex items-center gap-3'>
+                                                                <h3 className="text-lg font-bold text-neutral-300 tracking-wide">{log.bagType?.name}</h3>
+                                                                <span className="text-xs px-3 py-1 rounded-full font-medium tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                                    {log.status}
+                                                                </span>
+                                                            </div>
+                                                            <p className=''>{log.quantityDozens} Losin</p>
+                                                        </div>
+                                                        <div className="text-sm flex justify-between text-neutral-500 mt-1.5">
+                                                            {new Date(log.startTime).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            <span className="font-medium text-neutral-400">{formatDurasi(log.startTime, log.endTime)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <p className="text-neutral-500">
+                                                            ID Pekerjaan #{log.id}
+                                                        </p>
+                                                        <p className="text-xl font-bold text-emerald-500">Rp {log.estimatedPay?.toLocaleString('id-ID')}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {showModal && (
                     <div
