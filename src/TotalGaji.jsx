@@ -30,7 +30,7 @@ function getDateRange(filterKey) {
     start.setHours(0, 0, 0, 0);
 
     const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    end.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999)
 
     return {
         startDate: start.toISOString(),
