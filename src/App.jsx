@@ -40,11 +40,9 @@ export const groupLogsByWeek = (logs) => {
     const groups = {};
     const now = new Date();
 
-    // Fungsi untuk mendapatkan hari Senin dari sebuah tanggal
     const getMonday = (date) => {
         const d = new Date(date);
         const day = d.getDay();
-        // Jika hari Minggu (0), mundur 6 hari. Selain itu, mundur (day - 1) hari
         const diff = d.getDate() - day + (day === 0 ? -6 : 1);
         d.setDate(diff);
         d.setHours(0, 0, 0, 0);
@@ -59,20 +57,19 @@ export const groupLogsByWeek = (logs) => {
         const startOfWeek = getMonday(logDate);
 
         const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6); // Hari Minggu
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
 
         const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 
         let label = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
 
-        // Beri nama khusus untuk minggu ini dan minggu lalu
         if (startOfWeek.getTime() === currentMonday) {
             label = `Minggu Ini (${label})`;
         } else if (startOfWeek.getTime() === lastWeekMonday) {
             label = `Minggu Lalu (${label})`;
         }
 
-        const key = startOfWeek.getTime(); // Gunakan timestamp Senin sebagai kunci pengurutan
+        const key = startOfWeek.getTime();
 
         if (!groups[key]) {
             groups[key] = {
@@ -84,7 +81,6 @@ export const groupLogsByWeek = (logs) => {
         groups[key].logs.push(log);
     });
 
-    // Ubah object menjadi array, lalu urutkan dari yang terbaru (key terbesar) ke terlama
     return Object.values(groups).sort((a, b) => b.key - a.key);
 };
 
@@ -103,7 +99,6 @@ export default function App() {
     const historyLogs = workLogs?.data?.filter(log => log.status === 'SETOR') || []
     const groupedHistoryLogs = groupLogsByWeek(historyLogs)
 
-    // create work logs
     const kantongSubmit = useMutation({
         mutationFn: API.CreateWork
     })
