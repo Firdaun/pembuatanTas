@@ -9,21 +9,17 @@ const FILTER_OPTIONS = [
     { key: "month", label: "Bulan Ini" },
 ];
 
-// Helper: compute start/end ISO strings based on filter key
 function getDateRange(filterKey) {
     const now = new Date();
     let start;
 
     if (filterKey === "week") {
-        // Monday of the current week
-        const day = now.getDay(); // 0=Sun, 1=Mon, ...
-        const diff = day === 0 ? 6 : day - 1; // days since Monday
+        const day = now.getDay();
+        const diff = day === 0 ? 6 : day - 1;
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
     } else if (filterKey === "month") {
-        // First day of current month
         start = new Date(now.getFullYear(), now.getMonth(), 1);
     } else {
-        // "all" — use a very early date
         start = new Date("2020-01-01T00:00:00.000Z");
     }
 
@@ -42,10 +38,8 @@ export default function TotalGaji() {
     const { workLogs, isLoadingWorkLogs, isError } = useOutletContext();
     const [activeFilter, setActiveFilter] = useState("all");
 
-    // Compute date range from active filter
     const dateRange = useMemo(() => getDateRange(activeFilter), [activeFilter]);
 
-    // Fetch income from the API
     const {
         data: incomeData,
         isLoading: isLoadingIncome,
