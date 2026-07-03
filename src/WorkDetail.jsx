@@ -11,7 +11,6 @@ export default function WorkDetail() {
         <div className="min-h-screen bg-neutral-950 p-6 md:p-12">
             <div className="max-w-3xl mx-auto mt-8 md:mt-12 space-y-10 animate-pulse">
 
-                {/* Skeleton Header */}
                 <div className="flex justify-between items-end mb-12 border-b border-neutral-900 pb-6">
                     <div>
                         <div className="h-4 w-32 bg-neutral-900 rounded mb-4"></div>
@@ -20,7 +19,6 @@ export default function WorkDetail() {
                     <div className="h-6 w-24 bg-neutral-900 rounded"></div>
                 </div>
 
-                {/* Skeleton List Data */}
                 {[1, 2, 3, 4].map((item) => (
                     <div key={item} className="flex justify-between items-baseline border-b border-neutral-900 pb-6">
                         <div className="h-5 w-36 bg-neutral-900 rounded"></div>
@@ -33,7 +31,6 @@ export default function WorkDetail() {
     if (isError) return (
         <div className="min-h-screen bg-neutral-950 p-6 flex flex-col items-center justify-center text-center">
             <div className="max-w-md mx-auto flex flex-col items-center">
-                {/* Ikon Error Polos */}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 text-red-500/30 mb-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -45,7 +42,6 @@ export default function WorkDetail() {
                     Terjadi gangguan saat mencoba terhubung ke server. Pastikan koneksi internet aktif.
                 </p>
 
-                {/* Tombol Retry Flat */}
                 <button
                     onClick={() => refetch()}
                     className="text-emerald-400 hover:text-emerald-300 font-medium tracking-wide flex items-center gap-2 transition-colors border-b border-emerald-500/30 hover:border-emerald-400 pb-1"
@@ -64,7 +60,6 @@ export default function WorkDetail() {
             {workDetail ? (
                 <div className="max-w-3xl mx-auto md:mt-12">
 
-                    {/* Tombol Kembali Tanpa Kotak */}
                     <button
                         onClick={() => window.history.back()}
                         className="text-neutral-500 hover:text-white flex items-center gap-2 text-sm mb-12 transition-colors w-fit"
@@ -75,7 +70,6 @@ export default function WorkDetail() {
                         Kembali ke Riwayat
                     </button>
 
-                    {/* Header: Bersih dan Teks Besar */}
                     <div className="flex flex-row items-end justify-between gap-6 mb-8">
                         <div>
                             <p className="text-neutral-500 font-mono text-sm tracking-widest uppercase mb-3">
@@ -96,10 +90,7 @@ export default function WorkDetail() {
 
                     <hr className="border-neutral-800 mb-10" />
 
-                    {/* Content: List/Baris Simpel Tanpa Kotak */}
                     <div className="space-y-6">
-
-                        {/* Gaji di-highlight dengan ukuran font tipis tapi sangat besar */}
                         <div className="flex justify-between items-baseline mb-12">
                             <span className="text-neutral-400 text-lg">Total Gaji</span>
                             <span className="text-5xl md:text-6xl font-light text-emerald-400">
