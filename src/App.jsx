@@ -235,7 +235,6 @@ export default function App() {
 
                 {/* ═══ MODAL POPUP FORM ═══ */}
                 <div className="space-y-6">
-                    {/* KOTAK KHUSUS: PEKERJAAN AKTIF (Hanya muncul jika ada) */}
                     {(activeLog && !isLoadingWorkLogs) && (
                         <div className="bg-neutral-900/80 backdrop-blur-md border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500/0 via-amber-500 to-amber-500/0 opacity-50"></div>
@@ -249,7 +248,6 @@ export default function App() {
                             </h2>
 
                             <div className="bg-neutral-950/40 border border-amber-500/20 rounded-2xl p-5 space-y-5">
-                                {/* Info Utama Aktif */}
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-amber-500/10 pb-5">
                                     <div>
                                         <div className="flex items-center gap-3">
@@ -266,7 +264,6 @@ export default function App() {
                                     </div>
                                 </div>
 
-                                {/* Grid Detail Aktif & Tombol Setor */}
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                                     <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800/50">
                                         <p className="text-neutral-500 text-xs mb-1">Jumlah</p>
