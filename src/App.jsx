@@ -426,10 +426,8 @@ export default function App() {
                     <div
                         className={`fixed inset-0 z-60 flex bg-black/60 backdrop-blur-sm items-center justify-center p-4 ${isClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}
                     >
-                        {/* Modal Content */}
                         <div className={`relative w-full max-w-md ${isClosing ? 'animate-[modalOut_200ms_ease-in_forwards]' : 'animate-[modalIn_300ms_ease-out]'}`}>
                             <div ref={popupRef} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl shadow-black/40">
-                                {/* Header */}
                                 <div className="flex items-center justify-between mb-5">
                                     <h2 className="text-xl font-semibold text-white">{editingLog ? 'Update Setoran' : 'Input Setoran'}</h2>
                                     <button
