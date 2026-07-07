@@ -443,7 +443,6 @@ export default function App() {
                                     </button>
                                 </div>
 
-                                {/* Form */}
                                 <form onSubmit={handleKantongSubmit(handleSubmit)} className="space-y-4">
                                     <div className="relative">
                                         <label className="text-sm font-medium text-neutral-400">Tipe Tas</label>
