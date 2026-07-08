@@ -34,7 +34,6 @@ export default function Navbar({ setShowModal }) {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo / Brand */}
                     <Link to="/" className="flex items-center gap-3 group">
-                        {/* Gradient Icon */}
                         <div className="relative">
                             <div className="w-9 h-9 rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow duration-300">
                                 <svg
